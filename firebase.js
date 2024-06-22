@@ -1,6 +1,9 @@
-import { initializeApp } from 'firebase/app';
-import config from './config.js';
+import firebase from 'firebase-admin'
+import key from './project-key.js'
 
-const firebase = initializeApp(config.firebaseConfig);
+firebase.initializeApp({
+	credential: firebase.credential.cert(key),
+  	databaseURL: `https://${key.project_id}.firebaseio.com`
+});
 
 export default firebase;
