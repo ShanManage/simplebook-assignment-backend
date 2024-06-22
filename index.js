@@ -1,12 +1,22 @@
 import express from 'express'
-import bodyParser from 'body-parser'
+import cors from 'cors';
+import productRoutes from './routes/products.js'
+import userRoutes from './routes/users.js'
+
+import config from './config.js';
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(cors());
+app.use(express.json());
+
+app.use('/api/products', productRoutes)
+app.use('/api/users', userRoutes)
 
 app.get('/', (req, res) => {
   res.send('Successful response.');
 });
 
-app.listen(3001, () => console.log('Example app is listening on port 3001.'));
+app.listen(config.port, () =>
+  console.log(`Server is live @ ${config.hostUrl}`),
+);
