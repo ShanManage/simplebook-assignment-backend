@@ -1,4 +1,5 @@
 import express from 'express'
+import multer from 'multer'
 import {
   createProduct,
   getProduct,
@@ -8,9 +9,13 @@ import {
 } from '../controllers/products.controller.js'
 const router = express.Router()
 
+const upload = multer({
+  storage: multer.memoryStorage()
+});
+
 router.get('/', getProducts)
 
-router.post('/', createProduct) 
+router.post('/', upload.single('image'), createProduct) 
 
 router.get('/:id', getProduct);
 
