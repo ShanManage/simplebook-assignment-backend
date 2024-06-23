@@ -2,6 +2,7 @@ import firebase from '../firebase.js';
 import Product from '../models/product.js';
 
 const db = firebase.firestore();
+const bucket = firebase.storage().bucket();
 
 export const getProducts = async (req, res) => {
   try {
@@ -12,25 +13,49 @@ export const getProducts = async (req, res) => {
       const product = new Product(
         doc.id,
         doc.data().name,
+        doc.data().description,
         doc.data().price,
-        doc.data().description
+        doc.data().image
       );
       productArray.push(product);
     });
 
     res.status(200).send(productArray);
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send({ message: error.message });
   }
 } 
 
 export const createProduct = async (req, res, next) => {
   try {
     const data = req.body;
-    await db.collection('products').add(data);
-    res.status(200).send('product created successfully');
+
+    const filename = Date.now() + '-' + req.file.originalname;
+    const file = bucket.file(filename);
+    const stream = file.createWriteStream({
+        metadata: {
+            contentType: req.file.mimetype
+        }
+    });
+
+    stream.on('error', (err) => {
+        console.error(err);
+        res.status(500).send({ message: 'Something went wrong!' });
+    });
+
+    stream.on('finish', async () => {
+        await file.makePublic();
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
+
+        data.image = publicUrl
+
+        await db.collection('products').add(data);
+        res.status(201).send('product created successfully');
+    });
+
+    stream.end(req.file.buffer);
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send({ message: error.message });
   }
 };
 
@@ -42,10 +67,10 @@ export const getProduct = async (req, res, next) => {
     if (docSnap.exists) {
       res.status(200).send(docSnap.data());
     } else {
-      res.status(404).send('Product not found');
+      res.status(404).send({ message: 'product not found' });
     }
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send({ message: error.message });
   }
 };
 
@@ -59,10 +84,10 @@ export const updateProduct = async (req, res, next) => {
       await productRef.set(data, { merge: true });
       res.status(200).send('Product updated successfully');
     } else {
-      res.status(404).send('product not found');
+      res.status(404).send({ message: 'product not found' });
     }
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send({ message: error.message });
   }
 };
 
@@ -75,9 +100,9 @@ export const deleteProduct = async (req, res, next) => {
       await productRef.delete();
       res.status(200).send('product deleted successfully');
     } else {
-      res.status(404).send('product not found');
+      res.status(404).send({ message: 'product not found' });
     }
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send({ message: error.message });
   }
 };
