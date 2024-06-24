@@ -7,7 +7,7 @@ import {
 
 const router = express.Router()
 
-router.get('/:id', getUser);
+router.get('/', getUser);
 
 router.post('/', createUser) 
 

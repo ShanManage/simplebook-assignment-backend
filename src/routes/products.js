@@ -24,6 +24,6 @@ router.delete('/:id', deleteProduct);
 
 router.put('/:id', updateProduct);
 
-router.post('/:id/image', upload.single('image'), updateProductImage);
+router.patch('/:id/image', upload.single('image'), updateProductImage);
 
 export default router

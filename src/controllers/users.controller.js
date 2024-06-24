@@ -4,13 +4,15 @@ const db = firebase.firestore();
 
 export const getUser = async (req, res, next) => {
   try {
-    const id = req.params.id;
+    const id = req.user.uid;
     const docSnap = await db.collection('users').doc(id).get()
 
     if (docSnap.exists) {
-      res.status(200).send(data.data());
+      const user = docSnap.data();
+      user.id = id;
+      res.status(200).send(user);
     } else {
-      res.status(404).send({ message: 'user not found' });
+      res.status(404).send({ message: 'User not found' });
     }
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -41,7 +43,7 @@ export const createUser = async (req, res, next) => {
       phone: '',
       address: ''
     }
-    await db.collection('users').add(data);
+    await db.collection('users').doc(req.user.uid).set(data);
     res.status(200).send('User created successfully');
   } catch (error) {
     res.status(400).send({ message: error.message });
