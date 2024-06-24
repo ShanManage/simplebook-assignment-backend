@@ -93,6 +93,55 @@ export const updateProduct = async (req, res, next) => {
   }
 };
 
+export const updateProductImage = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const productRef = db.collection('products').doc(id);
+    const docSnap = await productRef.get();
+
+    if (!req.file) {
+      return res.status(400).send({ message: 'Product Image is required!' });
+    }
+
+    if (!docSnap.exists) {
+      return res.status(404).send({ message: 'Product not found' });
+    }
+
+    const filename = Date.now() + '-' + req.file.originalname;
+    const file = bucket.file(filename);
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+
+    stream.on('error', (err) => {
+      res.status(500).send({ message: 'Something went wrong!' });
+    });
+
+    stream.on('finish', async () => {
+      try {
+        await file.makePublic();
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
+  
+        const productData = docSnap.data();
+        productData.image = publicUrl;
+  
+        await productRef.set(productData, { merge: true });
+        res.status(200).send('Product updated successfully');
+      } catch (error) {
+        if (!res.headersSent) {
+          res.status(500).send({ message: 'Failed to update product image' });
+        }
+      }
+    });
+
+    stream.end(req.file.buffer);
+  } catch (error) {
+    res.status(400).send({ message: error.message });
+  }
+};
+
 export const deleteProduct = async (req, res, next) => {
   try {
     const id = req.params.id;
