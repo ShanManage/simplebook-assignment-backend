@@ -1,4 +1,4 @@
-import firebase from '../firebase.js';
+import firebase from '../../firebase.js';
 
 export const decodeToken = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];

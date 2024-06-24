@@ -1,4 +1,4 @@
-import firebase from '../firebase.js';
+import firebase from '../../firebase.js';
 import Product from '../models/product.js';
 
 const db = firebase.firestore();
@@ -65,7 +65,9 @@ export const getProduct = async (req, res, next) => {
     const docSnap = await db.collection('products').doc(id).get()
 
     if (docSnap.exists) {
-      res.status(200).send(docSnap.data());
+      const productData = docSnap.data();
+      productData.id = id;
+      res.status(200).send(productData);
     } else {
       res.status(404).send({ message: 'product not found' });
     }
