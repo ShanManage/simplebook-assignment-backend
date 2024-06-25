@@ -1,13 +1,15 @@
 import express from 'express'
 import cors from 'cors';
-import productRoutes from './routes/products.js'
-import userRoutes from './routes/users.js'
+import productRoutes from './src/routes/products.js'
+import userRoutes from './src/routes/users.js'
+import { decodeToken } from './src/middleware/index.js';
 
 import config from './config.js';
 
 const app = express();
 
 app.use(cors());
+app.use(decodeToken);
 app.use(express.json());
 
 app.use('/api/products', productRoutes)
